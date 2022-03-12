@@ -1,22 +1,64 @@
-from elasticsearch import Elasticsearch
+import os.path
+import logging
+import datetime
+import elasticsearch
+from dotenv import load_dotenv
 from index_operation import create_index
-from test_bug_fix import fix_data
 from import_to_elastic import bulk_data_to_elastic
-from json_operation import generate_json_file
+from postgres_extract import retrieve_data_from_postgres
+from check_data_change import check_change, load_last_mod
+from json_operation import create_dataclass_list, create_data_to_elastic
+
+log_folder = os.path.abspath('logs')
+log_name = 'postgres_extract.log'
+log_file = os.path.join(log_folder, log_name)
 
 
-api_url = 'http://127.0.0.1:8000/api/v1/movies/'
-config = {
-    'scheme': 'http',
-    'host': '127.0.0.1',
-    'port': 9200
-}
-es = Elasticsearch([config], request_timeout=300)
+logging.basicConfig(
+    filename=log_file,
+    level=logging.DEBUG,
+    format='%(asctime)s %(message)s',
+    datefmt='%m/%d/%Y %I:%M:%S %p'
+)
+
+load_dotenv()
+
 
 if __name__ == '__main__':
-    create_index(config)    # Создаест индекс
-    generate_json_file(api_url) # Создаст локальный файл 'data.json'
-    fix_data('data.json')   # Исправит ошибку для прохождения тестов
-    bulk_data_to_elastic('data.json')   # Загрузка данных в Elasticsearch
+    dsl = {
+        'dbname': os.getenv('POSTGRESQL_DB'),
+        'user': os.getenv('POSTGRESQL_USER'),
+        'password': os.getenv('POSTGRESQL_PASSWORD'),
+        'host': os.getenv('DB_HOST'),
+        'port': os.getenv('DB_PORT')
+    }
 
-    es.bulk(index='movies', body=bulk_data_to_elastic('data.json'))
+    config = {
+        'scheme': os.getenv('SCHEME'),
+        'host': os.getenv('DB_HOST_ELASTIC'),
+        'port': os.getenv('ELASTIC_PORT')
+    }
+
+    es = elasticsearch.Elasticsearch([config], request_timeout=300)
+
+    if os.path.exists('./modify/modify.json'):
+        try:
+            now = datetime.datetime.now()
+            time_to_check = now + datetime.timedelta(minutes=1)
+            if time_to_check.strftime("%Y-%m-%d %H:%M:%S") > load_last_mod():
+                create_data_to_elastic(
+                    create_dataclass_list(
+                        check_change(dsl)
+                    )
+                )
+                es.bulk(index='movies', body=bulk_data_to_elastic('data/data_file.json'))
+        except ValueError:
+            logging.error()
+    else:
+        create_index(config)
+        create_data_to_elastic(
+            create_dataclass_list(
+                retrieve_data_from_postgres(dsl)
+            )
+        )
+        es.bulk(index='movies', body=bulk_data_to_elastic('data/data_file.json'))

@@ -1,4 +1,9 @@
-import abc
+import abc        # cursor.execute("""
+        # SELECT film_work.id,
+        # film_work.modified
+        # FROM film_work
+        # WHERE film_work.modified > '2022-03-10 21:00:00'
+        # """)
 import json
 from typing import Any, Optional
 
