@@ -25,6 +25,12 @@ load_dotenv()
 
 
 if __name__ == '__main__':
+    if not os.path.exists('./data'):
+        os.makedirs('./data')
+
+    if not os.path.exists('./modify'):
+        os.makedirs('./modify')
+
     dsl = {
         'dbname': os.getenv('POSTGRESQL_DB'),
         'user': os.getenv('POSTGRESQL_USER'),
@@ -52,8 +58,8 @@ if __name__ == '__main__':
                     )
                 )
                 es.bulk(index='movies', body=bulk_data_to_elastic('data/data_file.json'))
-        except ValueError:
-            logging.error()
+        except ValueError as error:
+            logging.error(error)
     else:
         create_index(config)
         create_data_to_elastic(
