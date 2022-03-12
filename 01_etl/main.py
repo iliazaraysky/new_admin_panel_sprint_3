@@ -10,7 +10,7 @@ from check_data_change import check_change, load_last_mod
 from json_operation import create_dataclass_list, create_data_to_elastic
 
 log_folder = os.path.abspath('logs')
-log_name = 'postgres_extract.log'
+log_name = 'main.log'
 log_file = os.path.join(log_folder, log_name)
 
 
