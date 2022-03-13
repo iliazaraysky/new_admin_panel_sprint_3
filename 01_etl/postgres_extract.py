@@ -1,4 +1,3 @@
-import logging
 import psycopg2
 from config import dsl, logger
 from check_data_change import set_set_last_change_date

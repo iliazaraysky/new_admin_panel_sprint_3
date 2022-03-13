@@ -46,10 +46,10 @@ services:
       - http.max_content_length=500mb
     depends_on:
       - db
-#  etl01:
-#    build: ../01_etl/
-#    env_file:
-#      - ../01_etl/.env
+  etl01:
+    build: ../01_etl/
+    env_file:
+      - ../01_etl/.env
 volumes:
   postgres_data:
   static_value:
