@@ -1,34 +1,10 @@
-import os
 import logging
 import psycopg2
-from dotenv import load_dotenv
+from config import dsl, logger
 from check_data_change import set_set_last_change_date
 
 
-log_folder = os.path.abspath('logs')
-log_name = 'postgres_extract.log'
-log_file = os.path.join(log_folder, log_name)
-
-
-logging.basicConfig(
-    filename=log_file,
-    level=logging.DEBUG,
-    format='%(asctime)s %(message)s',
-    datefmt='%m/%d/%Y %I:%M:%S %p'
-)
-
-load_dotenv()
-
-dsl = {
-        'dbname': os.getenv('POSTGRESQL_DB'),
-        'user': os.getenv('POSTGRESQL_USER'),
-        'password': os.getenv('POSTGRESQL_PASSWORD'),
-        'host': os.getenv('DB_HOST'),
-        'port': os.getenv('DB_PORT')
-}
-
-
-def retrieve_data_from_postgres(dsl):
+def retrieve_data_from_postgres():
     conn = psycopg2.connect(**dsl)
     cursor = conn.cursor()
     try:
@@ -59,7 +35,7 @@ def retrieve_data_from_postgres(dsl):
         set_set_last_change_date()
         return row
     except (Exception, psycopg2.DatabaseError) as error:
-        logging.error(error)
+        logger.error(error)
     finally:
         if conn is not None:
             conn.close()

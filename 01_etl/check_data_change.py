@@ -1,30 +1,8 @@
-import os
 import json
 import logging
 import datetime
 import psycopg2
-from dotenv import load_dotenv
-
-log_folder = os.path.abspath('logs')
-log_name = 'check_data_change.log'
-log_file = os.path.join(log_folder, log_name)
-
-
-logging.basicConfig(
-    filename=log_file,
-    level=logging.DEBUG,
-    format='%(asctime)s %(message)s',
-    datefmt='%m/%d/%Y %I:%M:%S %p'
-)
-
-load_dotenv()
-dsl = {
-        'dbname': os.getenv('POSTGRESQL_DB'),
-        'user': os.getenv('POSTGRESQL_USER'),
-        'password': os.getenv('POSTGRESQL_PASSWORD'),
-        'host': os.getenv('DB_HOST'),
-        'port': os.getenv('DB_PORT')
-    }
+from config import dsl, logger
 
 
 def set_set_last_change_date():
@@ -43,11 +21,11 @@ def load_last_mod():
         with open('./modify/modify.json', 'r') as f:
             data = json.load(f)
             return data[0]['last_modify']
-    except FileNotFoundError:
-        print('File not found')
+    except FileNotFoundError as error:
+        logger.error(error)
 
 
-def check_change(dsl):
+def check_change():
     conn = psycopg2.connect(**dsl)
     cursor = conn.cursor()
     last_mod = load_last_mod()
@@ -81,7 +59,7 @@ def check_change(dsl):
         set_set_last_change_date()
         return row
     except (Exception, psycopg2.DatabaseError) as error:
-        logging.error(error)
+        logger.error(error)
     finally:
         if conn is not None:
             conn.close()

@@ -1,9 +1,4 @@
-import abc        # cursor.execute("""
-        # SELECT film_work.id,
-        # film_work.modified
-        # FROM film_work
-        # WHERE film_work.modified > '2022-03-10 21:00:00'
-        # """)
+import abc
 import json
 from typing import Any, Optional
 
@@ -64,9 +59,3 @@ class State:
             return data[key]
         except KeyError:
             return None
-
-file = JsonFileStorage('./file.json')
-state = State(file)
-# state.set_state('data_1', 1)
-# set_state_test_value = state.get_state('data_1')
-# assert set_state_test_value == 1
