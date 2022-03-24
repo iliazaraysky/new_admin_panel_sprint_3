@@ -6,7 +6,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - /postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
       - ./database/film_work_data.sql:/docker-entrypoint-initdb.d/film_work_data.sql
     environment:
       - POSTGRES_USER=postgres
